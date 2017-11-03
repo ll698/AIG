@@ -72,6 +72,7 @@ def res_loss_function(y_true, y_pred, a=0.0, b=1.0):
     baseline = model(y_pred)
     adverse = model(y_true)
     classifier_crossentropy = keras.losses.categorical_crossentropy(baseline, adverse)
+    classifier_crossentropy
     generative_crossentropy = keras.losses.binary_crossentropy(y_true, y_pred)
     print(generative_crossentropy)
     l2_distance = K.mean(K.sqrt(2. - (2 * K.sum((y_true * y_pred), axis=-1))))
