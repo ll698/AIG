@@ -136,6 +136,7 @@ x = UpSampling2D((2, 2))(x)
 x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
 x = UpSampling2D((2, 2))(x)
 x = Conv2D(32, (3, 3), activation='relu')(x)
+print(x.shape)
 decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
 
 autoencoder = Model(input_img, decoded)
