@@ -111,7 +111,7 @@ x = MaxPooling2D((2, 2), padding='same')(x)
 x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
 print(x.shape)
 
-flattened = Flatten()(encoded)
+flattened = Flatten()(x)
 print(flattened.shape)
 dense1 = Dense(128, activation='relu')(flattened)
 dense2 = Dense(64, activation='relu')(dense1)
