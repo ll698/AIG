@@ -5,13 +5,13 @@ from keras import backend as K
 from keras.callbacks import TensorBoard
 import matplotlib.pyplot as plt
 import keras
-
 from keras.datasets import mnist
 import numpy as np
 
+K.set_learning_phase(1) #set learning phase
 batch_size = 128
 num_classes = 10
-epochs = 1
+epochs = 3
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -72,19 +72,18 @@ def res_loss_function(y_true, y_pred, a=0.0, b=1.0):
     print(y_true.shape)
     baseline = model(y_pred)
     adverse = model(y_true)
-    classifier_crossentropy = keras.losses.categorical_crossentropy(baseline, adverse)
-    print(classifier_crossentropy.shape)
-    generative_crossentropy = keras.losses.binary_crossentropy(y_true, y_pred)
-    print(generative_crossentropy.shape)
-    generative_crossentropy = K.expand_dims(generative_crossentropy, 3)
-    print(generative_crossentropy.shape)
-    l2_distance = K.mean(K.sqrt(2. - (2 * K.sum((y_true * y_pred), axis=-1)))) ** 2
-    euc_distance = K.sqrt(K.sum(K.square(y_pred - y_true), axis=1)) ** 2
-    euc_distance = K.expand_dims(euc_distance, 1)
+    classifier_crossentropy = keras.losses.categorical_crossentropy(baseline, adverse) ** 2
 
-    out = (1/classifier_crossentropy) + generative_crossentropy
-    print(out.shape)
-    print(out)
+    generative_crossentropy = keras.losses.binary_crossentropy(y_true, y_pred)
+
+    generative_crossentropy = K.expand_dims(generative_crossentropy, 3)
+
+    euc_distance = K.sqrt(K.sum(K.square(y_pred - y_true), axis=1))
+    euc_distance = K.expand_dims(euc_distance, 1)
+    euc = K.expand_dims(euc_distance, 3)
+
+    out = (1 * (1/classifier_crossentropy)) + (5 * euc ** 4)
+
     return out
 
 
@@ -115,7 +114,7 @@ res_layer = Add()([dense2, res_layer1])
 dense3 = Dense(128, activation='relu')(res_layer)
 dense4 = Dense(128, activation='relu')(dense3)
 res_layer1 = Add()([dense4, res_layer])
-reshaped = Reshape((4,4,8))(res_layer1)
+# reshaped = Reshape((4,4,8))(res_layer1)
 
 # at this point the representation is (4, 4, 8) i.e. 128-dimensional
 
@@ -132,7 +131,7 @@ autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
 
 
 autoencoder.fit(x_train, x_train,
-                epochs=1,
+                epochs=10,
                 batch_size=128,
                 shuffle=True,
                 validation_data=(x_test, x_test),
@@ -141,22 +140,20 @@ autoencoder.fit(x_train, x_train,
 
 decoded_imgs = autoencoder.predict(x_test)
 
-
-K.set_learning_phase(1) #set learning phase
 autoencoder.compile(optimizer='adadelta', loss=res_loss_function)
 
 autoencoder.fit(x_train, x_train,
-                epochs=1,
+                epochs=10,
                 batch_size=128,
                 shuffle=True,
                 validation_data=(x_test, x_test))
 
-K.set_learning_phase(1) #set learning phase
-decoded_imgs = autoencoder.predict(x_test)
-predictions = model.predict(x_test)
+#subset = np.random.randint(10000, size=128)
+decoded_imgs = autoencoder.predict(x_train)
+predictions = model.predict(x_train)
 predictions1 = model.predict(decoded_imgs)
 
-n = 10
+n = 20
 plt.figure(figsize=(20, 4))
 for i in range(n):
     # display original
@@ -165,7 +162,7 @@ for i in range(n):
     print(predictions[i])
     print("Adv")
     print(predictions1[i])
-    plt.imshow(x_test[i].reshape(28, 28))
+    plt.imshow(x_train[i].reshape(28, 28))
     plt.gray()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
