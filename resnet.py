@@ -5,7 +5,7 @@ from keras import backend as K
 from keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 import keras
-from keras.datasets import mnist
+from keras.datasets import mnist, cifar10
 import numpy as np
 
 K.set_learning_phase(1) #set learning phase
