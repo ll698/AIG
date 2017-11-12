@@ -80,7 +80,7 @@ print('Test accuracy:', score[1])
 
 #RESNET ------------------------------------------------------------------------------
 
-def res_loss_function(y_true, y_pred, a=0.5):
+def res_loss_function(y_true, y_pred, alpha=0.5):
     y_true = Reshape((28,28,1))(y_true)
     print(y_true.shape)
     baseline = model(y_pred)
