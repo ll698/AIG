@@ -65,11 +65,11 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
 
-model.fit(x_train, y_train,
-          batch_size=batch_size,
-          epochs=epochs,
-          verbose=1,
-          validation_data=(x_test, y_test))
+# model.fit(x_train, y_train,
+#           batch_size=batch_size,
+#           epochs=epochs,
+#           verbose=1,
+#           validation_data=(x_test, y_test))
 
 #model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
@@ -81,7 +81,7 @@ print('Test accuracy:', score[1])
 #RESNET ------------------------------------------------------------------------------
 
 def res_loss_function(y_true, y_pred, alpha=0.5):
-    y_true = Reshape((28,28,1))(y_true)
+    y_true = Reshape((32,32,3))(y_true)
     print(y_true.shape)
     baseline = model(y_pred)
     adverse = model(y_true)
@@ -102,7 +102,7 @@ def res_loss_function(y_true, y_pred, alpha=0.5):
 
 
 
-input_img = Input(shape=(28, 28, 1))  # adapt this if using `channels_first` image data format
+input_img = Input(shape=(32, 32, 3))  # adapt this if using `channels_first` image data format
 
 x = Conv2D(32, (3, 3), activation='relu', padding='same')(input_img)
 x = MaxPooling2D((2, 2), padding='same')(x)
@@ -136,7 +136,7 @@ x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
 x = UpSampling2D((2, 2))(x)
 x = Conv2D(32, (3, 3), activation='relu')(x)
 x = UpSampling2D((2, 2))(x)
-decoded = Conv2D(1, (3, 3), activation='sigmoid', padding='same')(x)
+decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
 
 autoencoder = Model(input_img, decoded)
 autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
