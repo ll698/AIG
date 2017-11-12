@@ -69,15 +69,21 @@ print('Test accuracy:', score[1])
 
 def res_loss_function(y_true, y_pred, a=0.0, b=1.0):
     y_true = Reshape((28,28,1))(y_true)
+    print(y_true.shape)
     baseline = model(y_pred)
     adverse = model(y_true)
     classifier_crossentropy = keras.losses.categorical_crossentropy(baseline, adverse)
-    classifier_crossentropy
+    print(classifier_crossentropy.shape)
     generative_crossentropy = keras.losses.binary_crossentropy(y_true, y_pred)
-    print(generative_crossentropy)
-    l2_distance = K.mean(K.sqrt(2. - (2 * K.sum((y_true * y_pred), axis=-1))))
+    print(generative_crossentropy.shape)
+    generative_crossentropy = K.expand_dims(generative_crossentropy, 3)
+    print(generative_crossentropy.shape)
+    l2_distance = K.mean(K.sqrt(2. - (2 * K.sum((y_true * y_pred), axis=-1)))) ** 2
+    euc_distance = K.sqrt(K.sum(K.square(y_pred - y_true), axis=1)) ** 2
+    euc_distance = K.expand_dims(euc_distance, 1)
 
-    out = ((classifier_crossentropy)) + generative_crossentropy
+    out = (1/classifier_crossentropy) + generative_crossentropy
+    print(out.shape)
     print(out)
     return out
 
@@ -133,22 +139,32 @@ autoencoder.fit(x_train, x_train,
                 callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
 
 
+decoded_imgs = autoencoder.predict(x_test)
+
+
+K.set_learning_phase(1) #set learning phase
 autoencoder.compile(optimizer='adadelta', loss=res_loss_function)
 
 autoencoder.fit(x_train, x_train,
-                epochs=50,
+                epochs=1,
                 batch_size=128,
                 shuffle=True,
-                validation_data=(x_test, x_test),
-                callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
+                validation_data=(x_test, x_test))
 
+K.set_learning_phase(1) #set learning phase
 decoded_imgs = autoencoder.predict(x_test)
+predictions = model.predict(x_test)
+predictions1 = model.predict(decoded_imgs)
 
 n = 10
 plt.figure(figsize=(20, 4))
 for i in range(n):
     # display original
     ax = plt.subplot(2, n, i+1)
+    print("Test")
+    print(predictions[i])
+    print("Adv")
+    print(predictions1[i])
     plt.imshow(x_test[i].reshape(28, 28))
     plt.gray()
     ax.get_xaxis().set_visible(False)
