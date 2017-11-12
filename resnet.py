@@ -146,8 +146,7 @@ autoencoder.fit(x_train, x_train,
                 epochs=10,
                 batch_size=128,
                 shuffle=True,
-                validation_data=(x_test, x_test),
-                callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
+                validation_data=(x_test, x_test)])
 
 
 #autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
