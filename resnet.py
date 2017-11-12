@@ -105,9 +105,12 @@ def res_loss_function(y_true, y_pred, alpha=0.5):
 input_img = Input(shape=(32, 32, 3))  # adapt this if using `channels_first` image data format
 
 x = Conv2D(32, (3, 3), activation='relu', padding='same')(input_img)
+print(x.shape)
 x = MaxPooling2D((2, 2), padding='same')(x)
+print(x.shape)
 x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
 x = MaxPooling2D((2, 2), padding='same')(x)
+print(x.shape)
 x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
 print(x.shape)
 
@@ -132,12 +135,15 @@ print(reshaped.shape)
 
 # at this point the representation is (4, 4, 8) i.e. 128-dimensional
 x = Conv2D(8, (3, 3), activation='relu', padding='same')(reshaped)
+print(x.shape)
 x = UpSampling2D((2, 2))(x)
 x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+print(x.shape)
 x = UpSampling2D((2, 2))(x)
 x = Conv2D(32, (3, 3), activation='relu')(x)
 print(x.shape)
 decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
+print(decoded.shape)
 
 autoencoder = Model(input_img, decoded)
 autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
