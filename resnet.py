@@ -109,6 +109,7 @@ x = MaxPooling2D((2, 2), padding='same')(x)
 x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
 x = MaxPooling2D((2, 2), padding='same')(x)
 x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
+print(x.shape)
 encoded = MaxPooling2D((2, 2), padding='same')(x)
 
 print(encoded.shape)
@@ -121,6 +122,7 @@ dense4 = Dense(128, activation='relu')(dense3)
 res_layer1 = Add()([dense4, dense1])
 print(res_layer1.shape)
 reshaped = Reshape((4,4,8))(res_layer1)
+print(reshaped.shape)
 
 # dense1 = Dense(64, activation='relu')(res_layer1)
 # dense2 = Dense(64, activation='relu')(dense1)
@@ -131,8 +133,8 @@ reshaped = Reshape((4,4,8))(res_layer1)
 # reshaped = Reshape((4,4,8))(res_layer1)
 
 # at this point the representation is (4, 4, 8) i.e. 128-dimensional
-
-x = Conv2D(8, (3, 3), activation='relu', padding='same')(reshaped)
+x = UpSampling2D((2, 2))(reshaped)
+x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
 x = UpSampling2D((2, 2))(x)
 x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
 x = UpSampling2D((2, 2))(x)
