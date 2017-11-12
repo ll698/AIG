@@ -11,7 +11,7 @@ import numpy as np
 K.set_learning_phase(1) #set learning phase
 batch_size = 128
 num_classes = 10
-epochs = 1
+epochs = 10
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -71,7 +71,7 @@ model.compile(loss=keras.losses.categorical_crossentropy,
 #           verbose=1,
 #           validation_data=(x_test, y_test))
 
-model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
+#model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
 
 score = model.evaluate(x_test, y_test, verbose=0)
@@ -95,7 +95,7 @@ def res_loss_function(y_true, y_pred, a=0.0, b=1.0):
     euc_distance = K.expand_dims(euc_distance, 1)
     euc = K.expand_dims(euc_distance, 3)
 
-    out = (.1 * (1/classifier_crossentropy)) + (5 * euc ** 4)
+    out = (.1 * (1/classifier_crossentropy)) + (1 * euc ** 4)
 
     return out
 
@@ -114,23 +114,19 @@ encoded = MaxPooling2D((2, 2), padding='same')(x)
 
 flattened = Flatten()(encoded)
 dense1 = Dense(128, activation='relu')(flattened)
-x = Dropout(0.25)(dense1)
-dense2 = Dense(128, activation='relu')(dense1)
-x = Dropout(0.25)(dense2)
-res_layer = Add()([x, flattened])
-dense3 = Dense(64, activation='relu')(res_layer)
-x = Dropout(0.25)(dense3)
-dense4 = Dense(64, activation='relu')(x)
-res_layer1 = Add()([dense4, x])
-# reshaped = Reshape((4,4,8))(res_layer1)
-
-dense1 = Dense(64, activation='relu')(res_layer1)
 dense2 = Dense(64, activation='relu')(dense1)
-res_layer = Add()([dense2, res_layer1])
-dense3 = Dense(128, activation='relu')(res_layer)
+dense3 = Dense(64, activation='relu')(dense2)
 dense4 = Dense(128, activation='relu')(dense3)
-res_layer1 = Add()([dense3, dense4])
+res_layer1 = Add()([dense4, dense1])
 reshaped = Reshape((4,4,8))(res_layer1)
+
+# dense1 = Dense(64, activation='relu')(res_layer1)
+# dense2 = Dense(64, activation='relu')(dense1)
+# res_layer = Add()([dense2, res_layer1])
+# dense3 = Dense(128, activation='relu')(res_layer)
+# dense4 = Dense(128, activation='relu')(dense3)
+# res_layer1 = Add()([dense3, dense4])
+# reshaped = Reshape((4,4,8))(res_layer1)
 
 # at this point the representation is (4, 4, 8) i.e. 128-dimensional
 
@@ -146,28 +142,27 @@ autoencoder = Model(input_img, decoded)
 autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
 
 
-# autoencoder.fit(x_train, x_train,
-#                 epochs=10,
-#                 batch_size=128,
-#                 shuffle=True,
-#                 validation_data=(x_test, x_test),
-#                 callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
+autoencoder.fit(x_train, x_train,
+                epochs=10,
+                batch_size=128,
+                shuffle=True,
+                validation_data=(x_test, x_test))
 
 
-autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
+#autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
 
 decoded_imgs = autoencoder.predict(x_test)
 
 autoencoder.compile(optimizer='adadelta', loss=res_loss_function)
 
-# autoencoder.fit(x_train, x_train,
-#                 epochs=10,
-#                 batch_size=128,
-#                 shuffle=True,
-#                 validation_data=(x_test, x_test))
+autoencoder.fit(x_train, x_train,
+                epochs=10,
+                batch_size=128,
+                shuffle=True,
+                validation_data=(x_test, x_test))
 
-autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
+#autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
 #subset = np.random.randint(10000, size=128)
 decoded_imgs = autoencoder.predict(x_train)
