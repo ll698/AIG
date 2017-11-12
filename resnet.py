@@ -11,7 +11,7 @@ import numpy as np
 K.set_learning_phase(1) #set learning phase
 batch_size = 128
 num_classes = 10
-epochs = 1
+epochs = 10
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -114,23 +114,19 @@ encoded = MaxPooling2D((2, 2), padding='same')(x)
 
 flattened = Flatten()(encoded)
 dense1 = Dense(128, activation='relu')(flattened)
-x = Dropout(0.25)(dense1)
-dense2 = Dense(128, activation='relu')(dense1)
-x = Dropout(0.25)(dense2)
-res_layer = Add()([x, flattened])
-dense3 = Dense(64, activation='relu')(res_layer)
-x = Dropout(0.25)(dense3)
-dense4 = Dense(64, activation='relu')(x)
-res_layer1 = Add()([dense4, x])
-# reshaped = Reshape((4,4,8))(res_layer1)
-
-dense1 = Dense(64, activation='relu')(res_layer1)
 dense2 = Dense(64, activation='relu')(dense1)
-res_layer = Add()([dense2, res_layer1])
-dense3 = Dense(128, activation='relu')(res_layer)
+dense3 = Dense(64, activation='relu')(dense2)
 dense4 = Dense(128, activation='relu')(dense3)
-res_layer1 = Add()([dense3, dense4])
+res_layer1 = Add()([dense4, dense1])
 reshaped = Reshape((4,4,8))(res_layer1)
+
+# dense1 = Dense(64, activation='relu')(res_layer1)
+# dense2 = Dense(64, activation='relu')(dense1)
+# res_layer = Add()([dense2, res_layer1])
+# dense3 = Dense(128, activation='relu')(res_layer)
+# dense4 = Dense(128, activation='relu')(dense3)
+# res_layer1 = Add()([dense3, dense4])
+# reshaped = Reshape((4,4,8))(res_layer1)
 
 # at this point the representation is (4, 4, 8) i.e. 128-dimensional
 
