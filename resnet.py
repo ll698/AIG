@@ -118,6 +118,7 @@ dense2 = Dense(64, activation='relu')(dense1)
 dense3 = Dense(64, activation='relu')(dense2)
 dense4 = Dense(128, activation='relu')(dense3)
 res_layer1 = Add()([dense4, dense1])
+print(res_layer1.shape)
 reshaped = Reshape((4,4,8))(res_layer1)
 
 # dense1 = Dense(64, activation='relu')(res_layer1)
