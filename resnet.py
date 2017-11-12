@@ -64,14 +64,14 @@ model.add(Dense(num_classes, activation='softmax'))
 model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
-#
-# model.fit(x_train, y_train,
-#           batch_size=batch_size,
-#           epochs=epochs,
-#           verbose=1,
-#           validation_data=(x_test, y_test))
 
-model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
+model.fit(x_train, y_train,
+          batch_size=batch_size,
+          epochs=epochs,
+          verbose=1,
+          validation_data=(x_test, y_test))
+
+#model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
 
 score = model.evaluate(x_test, y_test, verbose=0)
@@ -80,7 +80,7 @@ print('Test accuracy:', score[1])
 
 #RESNET ------------------------------------------------------------------------------
 
-def res_loss_function(y_true, y_pred, a=0.0, b=1.0):
+def res_loss_function(y_true, y_pred, a=0.5):
     y_true = Reshape((28,28,1))(y_true)
     print(y_true.shape)
     baseline = model(y_pred)
@@ -95,7 +95,7 @@ def res_loss_function(y_true, y_pred, a=0.0, b=1.0):
     euc_distance = K.expand_dims(euc_distance, 1)
     euc = K.expand_dims(euc_distance, 3)
 
-    out = (.1 * (1/classifier_crossentropy)) + (5 * euc ** 4)
+    out = ((1 - alpha) * (1/classifier_crossentropy)) + (alpha * euc ** 4)
 
     return out
 
@@ -146,28 +146,28 @@ autoencoder = Model(input_img, decoded)
 autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
 
 
-# autoencoder.fit(x_train, x_train,
-#                 epochs=10,
-#                 batch_size=128,
-#                 shuffle=True,
-#                 validation_data=(x_test, x_test),
-#                 callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
+autoencoder.fit(x_train, x_train,
+                epochs=10,
+                batch_size=128,
+                shuffle=True,
+                validation_data=(x_test, x_test),
+                callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
 
 
-autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
+#autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
 
 decoded_imgs = autoencoder.predict(x_test)
 
 autoencoder.compile(optimizer='adadelta', loss=res_loss_function)
 
-# autoencoder.fit(x_train, x_train,
-#                 epochs=10,
-#                 batch_size=128,
-#                 shuffle=True,
-#                 validation_data=(x_test, x_test))
+autoencoder.fit(x_train, x_train,
+                epochs=10,
+                batch_size=128,
+                shuffle=True,
+                validation_data=(x_test, x_test))
 
-autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
+#autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
 #subset = np.random.randint(10000, size=128)
 decoded_imgs = autoencoder.predict(x_train)
