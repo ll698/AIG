@@ -11,7 +11,7 @@ import numpy as np
 K.set_learning_phase(1) #set learning phase
 batch_size = 128
 num_classes = 10
-epochs = 10
+epochs = 20
 
 # input image dimensions
 img_rows, img_cols = 32, 32
@@ -65,11 +65,11 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
 
-# model.fit(x_train, y_train,
-#           batch_size=batch_size,
-#           epochs=epochs,
-#           verbose=1,
-#           validation_data=(x_test, y_test))
+model.fit(x_train, y_train,
+          batch_size=batch_size,
+          epochs=epochs,
+          verbose=1,
+          validation_data=(x_test, y_test))
 
 #model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
@@ -88,7 +88,7 @@ def res_loss_function(y_true, y_pred, alpha=0.5):
     classifier_crossentropy = keras.losses.categorical_crossentropy(baseline, adverse) ** 2
 
     generative_crossentropy = keras.losses.binary_crossentropy(y_true, y_pred)
-    print(generative_crossentropy)
+    print(generative_crossentropy.shape)
     generative_crossentropy = K.expand_dims(generative_crossentropy, 3)
     print(generative_crossentropy.shape)
 
@@ -149,11 +149,11 @@ autoencoder = Model(input_img, decoded)
 autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
 
 
-# autoencoder.fit(x_train, x_train,
-#                 epochs=10,
-#                 batch_size=128,
-#                 shuffle=True,
-#                 validation_data=(x_test, x_test))
+autoencoder.fit(x_train, x_train,
+                epochs=10,
+                batch_size=128,
+                shuffle=True,
+                validation_data=(x_test, x_test))
 
 
 #autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
