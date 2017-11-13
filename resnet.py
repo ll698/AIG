@@ -88,12 +88,12 @@ def res_loss_function(y_true, y_pred, alpha=0.5):
     classifier_crossentropy = keras.losses.categorical_crossentropy(baseline, adverse) ** 2
 
     generative_crossentropy = keras.losses.binary_crossentropy(y_true, y_pred)
-
+    print(generative_crossentropy)
     generative_crossentropy = K.expand_dims(generative_crossentropy, 3)
     print(generative_crossentropy.shape)
 
     euc_distance = K.sqrt(K.sum(K.square(y_pred - y_true), axis=1))
-    euc_distance = K.expand_dims(euc_distance, 1)
+    print(euc_distance.shape)
     euc = K.expand_dims(euc_distance, 3)
     print(euc.shape)
 
@@ -107,14 +107,14 @@ def res_loss_function(y_true, y_pred, alpha=0.5):
 input_img = Input(shape=(32, 32, 3))  # adapt this if using `channels_first` image data format
 
 x = Conv2D(32, (3, 3), activation='relu', padding='same')(input_img)
-print(x.shape)
+
 x = MaxPooling2D((2, 2), padding='same')(x)
-print(x.shape)
+
 x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
 x = MaxPooling2D((2, 2), padding='same')(x)
-print(x.shape)
+
 x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-print(x.shape)
+
 
 flattened = Flatten()(x)
 dense1 = Dense(512, activation='relu')(flattened)
@@ -123,7 +123,7 @@ dense3 = Dense(128, activation='relu')(dense2)
 dense4 = Dense(512, activation='relu')(dense3)
 res_layer1 = Add()([dense4, dense1])
 reshaped = Reshape((8,8,8))(res_layer1)
-print(reshaped.shape)
+
 
 # dense1 = Dense(64, activation='relu')(res_layer1)
 # dense2 = Dense(64, activation='relu')(dense1)
@@ -135,15 +135,15 @@ print(reshaped.shape)
 
 # at this point the representation is (4, 4, 8) i.e. 128-dimensional
 x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-print(x.shape)
+
 x = UpSampling2D((2, 2), data_format='channels_last')(x)
 x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-print(x.shape)
+
 x = UpSampling2D((2, 2), data_format='channels_last')(x)
 x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
-print(x.shape)
+
 decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
-print(decoded.shape)
+
 
 autoencoder = Model(input_img, decoded)
 autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
