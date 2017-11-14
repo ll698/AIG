@@ -55,12 +55,14 @@ model.add(Conv2D(96, kernel_size=(3, 3), strides = 1,
                  input_shape=input_shape))
 model.add(Conv2D(96, (3, 3), strides = 1,activation='relu'))
 model.add(Conv2D(96, (3, 3), strides = 2,activation='relu'))
+model.add(Dropout(0.3))
 model.add(Conv2D(192, (3, 3), strides = 1,activation='relu'))
 model.add(Conv2D(192, (3, 3), strides = 1,activation='relu'))
 model.add(Dropout(0.3))
 model.add(Conv2D(192, (3, 3), strides = 2,activation='relu'))
 model.add(Conv2D(192, (3, 3), strides = 2,activation='relu'))
 model.add(Conv2D(192, (1, 1), strides = 1,activation='relu'))
+model.add(Dropout(0.3))
 model.add(Conv2D(10, (1, 1), strides = 1,activation='relu'))
 model.add(Flatten())
 model.add(Dense(num_classes, activation='softmax'))
@@ -69,11 +71,11 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
 
-# model.fit(x_train, y_train,
-#           batch_size=batch_size,
-#           epochs=epochs,
-#           verbose=1,
-#           validation_data=(x_test, y_test))
+model.fit(x_train, y_train,
+          batch_size=batch_size,
+          epochs=epochs,
+          verbose=1,
+          validation_data=(x_test, y_test))
 
 #model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
@@ -112,13 +114,13 @@ input_img = Input(shape=(32, 32, 3))
 
 flattened= Flatten()(input_img)
 dense1 = Dense(3072, activation='relu')(flattened)
-noise = keras.layers.GaussianNoise(0.01)(dense1)
+noise = keras.layers.GaussianNoise(0.1)(dense1)
 dense2 = Dense(3072, activation='relu')(noise)
 res_layer1 = Add()([dense2, flattened])
 dense3 = Dense(3072, activation='relu')(res_layer1)
-noise = keras.layers.GaussianNoise(0.01)(dense3)
+noise = keras.layers.GaussianNoise(0.1)(dense3)
 dense4 = Dense(3072, activation='relu')(noise)
-noise = keras.layers.GaussianNoise(0.01)(dense4)
+noise = keras.layers.GaussianNoise(0.1)(dense4)
 res_layer2 = Add()([noise, res_layer1])
 decoded = Reshape((32,32,3))(res_layer2)
 
