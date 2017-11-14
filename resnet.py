@@ -110,8 +110,8 @@ def res_loss_function(y_true, y_pred, alpha=0.9):
 
 input_img = Input(shape=(32, 32, 3))
 
-x= Flatten()(input_img)
-dense1 = Dense(3072, activation='relu')(x)
+flattened= Flatten()(input_img)
+dense1 = Dense(3072, activation='relu')(flattened)
 noise = keras.layers.GaussianNoise(0.01)(dense1)
 dense2 = Dense(3072, activation='relu')(noise)
 res_layer1 = Add()([dense2, flattened])
