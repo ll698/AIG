@@ -76,8 +76,8 @@ model.fit(x_train, y_train,
           epochs=epochs,
           verbose=1,
           validation_data=(x_test, y_test),
-          callbacks = keras.callbacks.ModelCheckpoint("cnn.hd5", monitor='val_loss',
-          verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1))
+          callbacks = [keras.callbacks.ModelCheckpoint("cnn.hd5", monitor='val_loss',
+          verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1)])
 
 #model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
@@ -151,8 +151,8 @@ autoencoder.fit(x_train, x_train,
                 shuffle=True,
                 validation_data=(x_test, x_test),
                 callbacks=
-                keras.callbacks.ModelCheckpoint("autoencoder.hd5", monitor='val_loss',
-                verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1))
+                [keras.callbacks.ModelCheckpoint("autoencoder.hd5", monitor='val_loss',
+                verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1)])
 
 #autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
