@@ -69,11 +69,11 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
 
-model.fit(x_train, y_train,
-          batch_size=batch_size,
-          epochs=epochs,
-          verbose=1,
-          validation_data=(x_test, y_test))
+# model.fit(x_train, y_train,
+#           batch_size=batch_size,
+#           epochs=epochs,
+#           verbose=1,
+#           validation_data=(x_test, y_test))
 
 #model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
@@ -110,25 +110,28 @@ def res_loss_function(y_true, y_pred, alpha=0.9):
 
 input_img = Input(shape=(32, 32, 3))
 
-flattened = Flatten()(input_img)
-dense1 = Dense(3072, activation='relu')(flattened)
-dense2 = Dense(3072, activation='relu')(dense1)
+x= Flatten()(input_img)
+dense1 = Dense(3072, activation='relu')(x)
+noise = keras.layers.GaussianNoise(0.01)(dense1)
+dense2 = Dense(3072, activation='relu')(noise)
 res_layer1 = Add()([dense2, flattened])
 dense3 = Dense(3072, activation='relu')(res_layer1)
-dense4 = Dense(3072, activation='relu')(dense3)
-res_layer1 = Add()([dense4, res_layer1])
-decoded = Reshape((32,32,3))(res_layer1)
+noise = keras.layers.GaussianNoise(0.01)(dense3)
+dense4 = Dense(3072, activation='relu')(noise)
+noise = keras.layers.GaussianNoise(0.01)(dense4)
+res_layer2 = Add()([noise, res_layer1])
+decoded = Reshape((32,32,3))(res_layer2)
 
 
 autoencoder = Model(input_img, decoded)
 autoencoder.compile(optimizer='adam', loss='mse')
 
 
-# autoencoder.fit(x_train, x_train,
-#                 epochs=3,
-#                 batch_size=128,
-#                 shuffle=True,
-#                 validation_data=(x_test, x_test))
+autoencoder.fit(x_train, x_train,
+                epochs=1,
+                batch_size=128,
+                shuffle=True,
+                validation_data=(x_test, x_test))
 
 
 #autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
