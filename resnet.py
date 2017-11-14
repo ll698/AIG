@@ -1,4 +1,4 @@
-from keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D
+from keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D, AveragePooling2D
 from keras.layers import Dense, Dropout, Flatten, Reshape, Add
 from keras.models import Model, Sequential
 from keras import backend as K
@@ -50,15 +50,19 @@ datagen = ImageDataGenerator(
 datagen.fit(x_train)
 
 model = Sequential()
-model.add(Conv2D(32, kernel_size=(3, 3),
+model.add(Conv2D(96, kernel_size=(3, 3), strides = 1,
                  activation='relu',
                  input_shape=input_shape))
-model.add(Conv2D(64, (3, 3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
+model.add(Conv2D(96, (3, 3), strides = 1,activation='relu'))
+model.add(Conv2D(96, (3, 3), strides = 2,activation='relu'))
+model.add(Conv2D(192, (3, 3), strides = 1,activation='relu'))
+model.add(Conv2D(192, (3, 3), strides = 1,activation='relu'))
+model.add(Dropout(0.3))
+model.add(Conv2D(192, (3, 3), strides = 2,activation='relu'))
+model.add(Conv2D(192, (3, 3), strides = 2,activation='relu'))
+model.add(Conv2D(192, (1, 1), strides = 1,activation='relu'))
+model.add(Conv2D(10, (1, 1), strides = 1,activation='relu'))
 model.add(Flatten())
-model.add(Dense(128, activation='relu'))
-model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='softmax'))
 
 model.compile(loss=keras.losses.categorical_crossentropy,
@@ -80,12 +84,12 @@ print('Test accuracy:', score[1])
 
 #RESNET ------------------------------------------------------------------------------
 
-def res_loss_function(y_true, y_pred, alpha=0.5):
+def res_loss_function(y_true, y_pred, alpha=0.9):
     y_true = Reshape((32,32,3))(y_true)
     print(y_true.shape)
     baseline = model(y_pred)
     adverse = model(y_true)
-    classifier_crossentropy = keras.losses.categorical_crossentropy(baseline, adverse) ** 2
+    classifier_crossentropy = keras.losses.categorical_crossentropy(baseline, adverse)
 
     generative_crossentropy = keras.losses.binary_crossentropy(y_true, y_pred)
     print(generative_crossentropy.shape)
@@ -97,63 +101,34 @@ def res_loss_function(y_true, y_pred, alpha=0.5):
     euc = K.expand_dims(euc_distance, 3)
     print(euc.shape)
 
-    out = ((1 - alpha) * (1/classifier_crossentropy)) + (alpha * euc ** 4)
+    out = ((1 - alpha) * (1/classifier_crossentropy)) + (alpha * generative_crossentropy ** 2)
 
     return out
 
 
 
 
-input_img = Input(shape=(32, 32, 3))  # adapt this if using `channels_first` image data format
+input_img = Input(shape=(32, 32, 3))
 
-x = Conv2D(32, (3, 3), activation='relu', padding='same')(input_img)
-
-x = MaxPooling2D((2, 2), padding='same')(x)
-
-x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-x = MaxPooling2D((2, 2), padding='same')(x)
-
-x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-
-
-flattened = Flatten()(x)
-dense1 = Dense(512, activation='relu')(flattened)
-dense2 = Dense(128, activation='relu')(dense1)
-dense3 = Dense(128, activation='relu')(dense2)
-dense4 = Dense(512, activation='relu')(dense3)
-res_layer1 = Add()([dense4, dense1])
-reshaped = Reshape((8,8,8))(res_layer1)
-
-
-# dense1 = Dense(64, activation='relu')(res_layer1)
-# dense2 = Dense(64, activation='relu')(dense1)
-# res_layer = Add()([dense2, res_layer1])
-# dense3 = Dense(128, activation='relu')(res_layer)
-# dense4 = Dense(128, activation='relu')(dense3)
-# res_layer1 = Add()([dense3, dense4])
-# reshaped = Reshape((4,4,8))(res_layer1)
-
-# at this point the representation is (4, 4, 8) i.e. 128-dimensional
-x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-
-x = UpSampling2D((2, 2), data_format='channels_last')(x)
-x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-
-x = UpSampling2D((2, 2), data_format='channels_last')(x)
-x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
-
-decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
+flattened = Flatten()(input_img)
+dense1 = Dense(3072, activation='relu')(flattened)
+dense2 = Dense(3072, activation='relu')(dense1)
+res_layer1 = Add()([dense2, flattened])
+dense3 = Dense(3072, activation='relu')(res_layer1)
+dense4 = Dense(3072, activation='relu')(dense3)
+res_layer1 = Add()([dense4, res_layer1])
+decoded = Reshape((32,32,3))(res_layer1)
 
 
 autoencoder = Model(input_img, decoded)
-autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
+autoencoder.compile(optimizer='adam', loss='mse')
 
 
-autoencoder.fit(x_train, x_train,
-                epochs=10,
-                batch_size=128,
-                shuffle=True,
-                validation_data=(x_test, x_test))
+# autoencoder.fit(x_train, x_train,
+#                 epochs=3,
+#                 batch_size=128,
+#                 shuffle=True,
+#                 validation_data=(x_test, x_test))
 
 
 #autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
@@ -161,10 +136,10 @@ autoencoder.fit(x_train, x_train,
 
 decoded_imgs = autoencoder.predict(x_test)
 
-autoencoder.compile(optimizer='adadelta', loss=res_loss_function)
+autoencoder.compile(optimizer= keras.optimizers.Adadelta(), loss=res_loss_function)
 
 autoencoder.fit(x_train, x_train,
-                epochs=10,
+                epochs=20,
                 batch_size=128,
                 shuffle=True,
                 validation_data=(x_test, x_test))
@@ -172,8 +147,8 @@ autoencoder.fit(x_train, x_train,
 #autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
 #subset = np.random.randint(10000, size=128)
-decoded_imgs = autoencoder.predict(x_train)
 predictions = model.predict(x_train)
+decoded_imgs = autoencoder.predict(x_train)
 predictions1 = model.predict(decoded_imgs)
 
 n = 20
@@ -185,14 +160,14 @@ for i in range(n):
     print(predictions[i])
     print("Adv")
     print(predictions1[i])
-    plt.imshow(x_train[i].reshape(28, 28))
+    plt.imshow(x_train[i].reshape(32, 32, 3))
     plt.gray()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
 
     # display reconstruction
     ax = plt.subplot(2, n, i + n + 1)
-    plt.imshow(decoded_imgs[i].reshape(28, 28))
+    plt.imshow(decoded_imgs[i].reshape(32, 32, 3))
     plt.gray()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
