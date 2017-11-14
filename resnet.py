@@ -75,7 +75,9 @@ model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           verbose=1,
-          validation_data=(x_test, y_test))
+          validation_data=(x_test, y_test),
+          keras.callbacks.ModelCheckpoint("cnn.hd5", monitor='val_loss',
+          verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1))
 
 #model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
@@ -147,11 +149,16 @@ autoencoder.fit(x_train, x_train,
                 epochs=20,
                 batch_size=128,
                 shuffle=True,
-                validation_data=(x_test, x_test))
+                validation_data=(x_test, x_test),
+                callbacks=
+                keras.callbacks.ModelCheckpoint("autoencoder.hd5", monitor='val_loss',
+                verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1))
 
 #autoencoder.fit_generator(datagen.flow(x_train, x_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 128, epochs=epochs, verbose=1)
 
 #subset = np.random.randint(10000, size=128)
+model = load_model('cnn.h5')
+autoencoder = load_model('autoencoder.h5')
 predictions = model.predict(x_train)
 decoded_imgs = autoencoder.predict(x_train)
 predictions1 = model.predict(decoded_imgs)
@@ -176,4 +183,5 @@ for i in range(n):
     plt.gray()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
-plt.show()
+plt.savefig("test.png")
+# plt.show()
